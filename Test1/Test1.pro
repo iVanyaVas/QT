@@ -1,6 +1,6 @@
 QT       += printsupport
 QT       += core gui
-QT += qml quick
+QT       += qml quick
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -29,3 +29,6 @@ unix|win32: LIBS += -L$$PWD/../../LimeReportSrc/LimeReport-master/build/5.12.12/
 
 INCLUDEPATH += $$PWD/../../LimeReportSrc/LimeReport-master/build/5.12.12/win64/release/lib/include
 DEPENDPATH += $$PWD/../../LimeReportSrc/LimeReport-master/build/5.12.12/win64/release/lib/include
+
+RESOURCES += \
+    res.qrc
