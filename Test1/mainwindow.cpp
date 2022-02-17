@@ -19,8 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
         model->setItem(j,i,item);
     }
 
-    ui->tableView->setModel(model);
-    report->dataManager()->addModel("tablewidget", ui->tableView->model(),false);
+    report->dataManager()->addModel("tablewidget",model,false);
 
 }
 
@@ -33,33 +32,66 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_clicked()
 {
+    //report->printToPDF("Test");
 
-    report->previewReport();
 }
 
 
 void MainWindow::on_pushButton_2_clicked()
 {
+//
+}
 
 
-   QString filename = QFileDialog::getSaveFileName(this, tr("Save File"),
-        "", tr("PDF (*.pdf);; All Files (*)"));
-   if (filename.isEmpty())
-          return;
-      else
-   {
-          QFile file(filename);
+void MainWindow::on_pushButton_3_clicked()
+{
+    report->createPreviewWidget(ui->tableWidget);
 
-          if (!file.open(QIODevice::WriteOnly))
-          {
-              QMessageBox::information(this, tr("Unable to open file"),
-                  file.errorString());
-              return;
-          }
-          QDataStream out(&file);
-           out<< report->printToPDF("/Test1.lrxml");
+    //Load File Dialog
+    QString filename = QFileDialog::getOpenFileName((QWidget* )0, "Load Sample", QString(), "*.lrxml");
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return;
 
-     }
+   // while (!file.atEnd()) {
+     //   QByteArray line = file.readLine();
+      //  list->append(line);
+    //}
 
+    QPrinter printer(QPrinter::PrinterResolution);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setPaperSize(QPrinter::A4);
+    printer.setOutputFileName(filename);
+    //report->printToPDF(filename);
+    //report->printReport(&printer);
+
+    report->previewReport(&printer);
+
+
+
+    //Save PDF file Dialog
+   // QString filename_1 = QFileDialog::getSaveFileName((QWidget* )0, "Export PDF", QString(), "*.pdf");
+   // if (QFileInfo(filename_1).suffix().isEmpty())
+   // {
+   //     filename_1.append(".pdf");
+   // }
+
+
+
+
+    //QList<QString> *list = new QList<QString>();
+   /* QPainter painter(&printer);
+    int counter = 0;
+    for(auto i: *list)
+    {
+           painter.drawText(0,counter,i);
+           counter+=20;
+    }
+
+    painter.end();*/
+
+    //QString filename("D:/Programs/QtProjects/build-Test1-Desktop_Qt_5_12_12_MinGW_64_bit-Release/Test.pdf");
+     report->printReport(&printer);
+    // delete list;
 }
 
