@@ -12,6 +12,7 @@
 #include <QPainter>
 #include <QFile>
 #include <QTextStream>
+#include <QProgressDialog>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,17 +24,18 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
-    LimeReport::ReportEngine *report = new LimeReport::ReportEngine(nullptr);
+    LimeReport::ReportEngine *report;
+    void renderStarted();
+    void renderPageFinished(int renderedPageCount);
+    void renderFinished();
     ~MainWindow();
 
 private slots:
-    void on_pushButton_clicked();
-
-    void on_pushButton_2_clicked();
-
     void on_pushButton_3_clicked();
 
 private:
     Ui::MainWindow *ui;
+    QProgressDialog* m_progressDialog;
+    int m_currentPage;
 };
 #endif // MAINWINDOW_H

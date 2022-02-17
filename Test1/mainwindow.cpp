@@ -3,9 +3,15 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+    , ui(new Ui::MainWindow), m_progressDialog(0)
 {
     ui->setupUi(this);
+    report = new LimeReport::ReportEngine(this);
+
+    connect(report, SIGNAL(renderStarted()), this, SLOT(renderStarted()));
+    connect(report, SIGNAL(renderPageFinished(int)),
+            this, SLOT(renderPageFinished(int)));
+    connect(report, SIGNAL(renderFinished()), this, SLOT(renderFinished()));
 
     int rowcount = 3;
     int columncount = 37;
@@ -30,68 +36,50 @@ MainWindow::~MainWindow()
 }
 
 
-void MainWindow::on_pushButton_clicked()
-{
-    //report->printToPDF("Test");
-
-}
-
-
-void MainWindow::on_pushButton_2_clicked()
-{
-//
-}
-
-
 void MainWindow::on_pushButton_3_clicked()
 {
-    report->createPreviewWidget(ui->tableWidget);
+    QString testname = "Test";
+    QVariant testvalue = "TestValue";
+    //report->createPreviewWidget();
 
     //Load File Dialog
-    QString filename = QFileDialog::getOpenFileName((QWidget* )0, "Load Sample", QString(), "*.lrxml");
+    QString filename = QFileDialog::getOpenFileName(this,"Select report file",QApplication::applicationDirPath(),"*.lrxml");
     QFile file(filename);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-        return;
-
-   // while (!file.atEnd()) {
-     //   QByteArray line = file.readLine();
-      //  list->append(line);
-    //}
-
-    QPrinter printer(QPrinter::PrinterResolution);
-    printer.setOutputFormat(QPrinter::PdfFormat);
-    printer.setPaperSize(QPrinter::A4);
-    printer.setOutputFileName(filename);
-    //report->printToPDF(filename);
-    //report->printReport(&printer);
-
-    report->previewReport(&printer);
-
-
-
-    //Save PDF file Dialog
-   // QString filename_1 = QFileDialog::getSaveFileName((QWidget* )0, "Export PDF", QString(), "*.pdf");
-   // if (QFileInfo(filename_1).suffix().isEmpty())
-   // {
-   //     filename_1.append(".pdf");
-   // }
-
-
-
-
-    //QList<QString> *list = new QList<QString>();
-   /* QPainter painter(&printer);
-    int counter = 0;
-    for(auto i: *list)
+    if(!filename.isEmpty())
     {
-           painter.drawText(0,counter,i);
-           counter+=20;
+        report->loadFromFile(filename);
+        report->dataManager()->setReportVariable(testname,testvalue);
+        report->setShowProgressDialog(true);
+        report->previewReport();
+
     }
-
-    painter.end();*/
-
-    //QString filename("D:/Programs/QtProjects/build-Test1-Desktop_Qt_5_12_12_MinGW_64_bit-Release/Test.pdf");
-     report->printReport(&printer);
-    // delete list;
 }
 
+void MainWindow::renderStarted()
+{
+    if (report->isShowProgressDialog()){
+        m_currentPage = 0;
+        m_progressDialog = new QProgressDialog(tr("Start render"),tr("Cancel"),0,0,this);
+        //m_progressDialog->setWindowModality(Qt::WindowModal);
+        connect(m_progressDialog, SIGNAL(canceled()), report, SLOT(cancelRender()));
+        QApplication::processEvents();
+        m_progressDialog->show();
+    }
+}
+
+void MainWindow::renderPageFinished(int renderedPageCount)
+{
+    if (m_progressDialog){
+        m_progressDialog->setLabelText(QString::number(renderedPageCount)+tr(" page rendered"));
+        m_progressDialog->setValue(renderedPageCount);
+    }
+}
+
+void MainWindow::renderFinished()
+{
+    if (m_progressDialog){
+        m_progressDialog->close();
+        delete m_progressDialog;
+    }
+    m_progressDialog = 0;
+}
